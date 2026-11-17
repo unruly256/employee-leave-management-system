@@ -6,7 +6,7 @@ databases:
 
 services:
   - type: web
-    name: anoor-leave-management
+    name: employee-leave-management-system
     runtime: python
     plan: free
     buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput"
