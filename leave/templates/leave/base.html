@@ -1,0 +1,77 @@
+{% load static leave_tags %}<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#174a63">
+  <meta name="description" content="Apply for, approve and track employee leave.">
+  <title>{% block title %}Dashboard{% endblock %} | Employee Leave Management</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23174a63'/%3E%3Cpath d='M9 16.5l4.5 4.5L23 11.5' fill='none' stroke='%23e8b949' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="{% static 'leave/vendor/bootstrap/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'leave/vendor/bootstrap-icons/bootstrap-icons.min.css' %}">
+  <link rel="stylesheet" href="{% static 'leave/css/style.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<nav class="navbar navbar-expand-xl navbar-dark app-navbar" aria-label="Main">
+  <div class="container-fluid px-lg-4">
+    <a class="navbar-brand" href="{% url 'leave:home' %}"><span class="brand-mark" aria-hidden="true"><i class="bi bi-calendar2-check"></i></span>Leave Management</a>
+    {% if user.is_authenticated %}
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainMenu" aria-controls="mainMenu" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+    <div class="collapse navbar-collapse" id="mainMenu">
+      <ul class="navbar-nav me-auto mb-2 mb-xl-0 ms-xl-3 gap-xl-1">
+        <li class="nav-item"><a class="nav-link {% nav_active 'home' %}" href="{% url 'leave:home' %}"><i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link {% nav_active 'application_list' 'application_add' 'application_process' %}" href="{% url 'leave:application_list' %}"><i class="bi bi-inbox me-1" aria-hidden="true"></i>Applications</a></li>
+        <li class="nav-item"><a class="nav-link {% nav_active 'record_list' %}" href="{% url 'leave:record_list' %}"><i class="bi bi-journal-check me-1" aria-hidden="true"></i>Records</a></li>
+        <li class="nav-item"><a class="nav-link {% nav_active 'leavetype_list' 'leavetype_add' 'leavetype_edit' 'leavetype_delete' %}" href="{% url 'leave:leavetype_list' %}"><i class="bi bi-tags me-1" aria-hidden="true"></i>Leave types</a></li>
+        {% if user|is_hr %}
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle {% nav_active 'department_list' 'department_add' 'department_edit' 'department_delete' 'employee_list' 'employee_add' 'employee_edit' 'employee_delete' 'teamsize_list' 'teamsize_add' 'teamsize_edit' 'teamsize_delete' %}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-people me-1" aria-hidden="true"></i>HR setup</a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item {% nav_active 'department_list' 'department_add' 'department_edit' 'department_delete' %}" href="{% url 'leave:department_list' %}"><i class="bi bi-building me-2" aria-hidden="true"></i>Departments</a></li>
+            <li><a class="dropdown-item {% nav_active 'employee_list' 'employee_add' 'employee_edit' 'employee_delete' %}" href="{% url 'leave:employee_list' %}"><i class="bi bi-person-vcard me-2" aria-hidden="true"></i>Employees</a></li>
+            <li><a class="dropdown-item {% nav_active 'teamsize_list' 'teamsize_add' 'teamsize_edit' 'teamsize_delete' %}" href="{% url 'leave:teamsize_list' %}"><i class="bi bi-diagram-3 me-2" aria-hidden="true"></i>Team sizes</a></li>
+          </ul>
+        </li>
+        {% endif %}
+      </ul>
+      <div class="d-flex align-items-center gap-3 user-tools">
+        <div class="user-chip">
+          <span class="avatar" aria-hidden="true">{% firstof user.employee.full_name user.get_username as display_name %}{{ display_name|initials }}</span>
+          <span>{{ display_name }}<small>{{ nav_role }}</small></span>
+        </div>
+        <form method="post" action="{% url 'logout' %}" class="m-0">{% csrf_token %}<button class="btn btn-sm btn-outline-light" type="submit"><i class="bi bi-box-arrow-right" aria-hidden="true"></i>Log out</button></form>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</nav>
+
+{% if messages %}
+<div class="flash-stack" role="status" aria-live="polite">
+  {% for m in messages %}<div class="alert alert-{% if 'error' in m.tags %}danger{% elif 'warning' in m.tags %}warning{% elif 'success' in m.tags %}success{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+    <i class="bi {% if 'error' in m.tags %}bi-exclamation-circle-fill{% elif 'warning' in m.tags %}bi-exclamation-triangle-fill{% elif 'success' in m.tags %}bi-check-circle-fill{% else %}bi-info-circle-fill{% endif %} me-2" aria-hidden="true"></i><span>{{ m }}</span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>{% endfor %}
+</div>
+{% endif %}
+
+<main id="main" class="app-main">
+  {% block content %}{% endblock %}
+</main>
+<footer class="app-footer">Fair Leave <span aria-hidden="true">&middot;</span> Happy Workers</footer>
+
+<!-- Shared confirmation dialog, opened by forms that carry a data-confirm message. -->
+<div class="modal fade" id="actionConfirmModal" tabindex="-1" aria-labelledby="actionConfirmTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <div class="modal-header"><h2 class="modal-title" id="actionConfirmTitle">Please confirm</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+    <div class="modal-body" id="actionConfirmMessage">Are you sure you want to continue?</div>
+    <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Go back</button><button type="button" class="btn btn-danger" id="confirmActionButton"><span class="label">Continue</span></button></div>
+  </div></div>
+</div>
+<script src="{% static 'leave/vendor/bootstrap/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'leave/js/app.js' %}" defer></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,29 @@
+{% extends "leave/base.html" %}
+{% load leave_tags %}
+{% block title %}Leave records{% endblock %}
+{% block content %}
+<div class="pagehead"><div><h1>Leave records</h1><p class="page-sub">Every approval and rejection is logged here automatically.</p></div></div>
+<form class="filter-bar" method="get" aria-label="Filter records">
+  <label class="visually-hidden" for="f-decision">Decision</label>
+  <select id="f-decision" class="form-select" name="decision"><option value="">All decisions</option>
+    <option value="Approved" {% if decision == "Approved" %}selected{% endif %}>Approved</option>
+    <option value="Rejected" {% if decision == "Rejected" %}selected{% endif %}>Rejected</option>
+  </select>
+  <button class="btn btn-primary" type="submit"><i class="bi bi-funnel" aria-hidden="true"></i>Filter</button>
+  {% if decision %}<a class="clear" href="{% url 'leave:record_list' %}">Clear filter</a>{% endif %}
+</form>
+<p class="results-line" aria-live="polite">{{ page.paginator.count }} record{{ page.paginator.count|pluralize }}</p>
+<div class="table-card"><table class="data-table">
+  <thead><tr><th scope="col">Record</th><th scope="col">Application</th><th scope="col">Employee</th><th scope="col">Leave type</th><th scope="col">Decision</th><th scope="col">Processed by</th><th scope="col">Comment</th><th scope="col">Logged</th></tr></thead>
+  <tbody>
+  {% for r in page %}
+  <tr><td class="id">{{ r.pk }}</td><td>{{ r.application_id }}</td><td>{{ r.application.employee }}</td>
+      <td>{{ r.application.leave_type }}</td><td>{% status_badge r.decision %}</td>
+      <td>{{ r.processor_name }}</td><td>{{ r.comments|default:"-" }}</td><td>{{ r.date_logged|date:"j M Y, H:i" }}</td></tr>
+  {% empty %}
+  <tr><td colspan="8"><div class="empty"><i class="bi bi-journal-check" aria-hidden="true"></i><strong>No records yet</strong>Records appear here as soon as an application is approved or rejected.</div></td></tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% include "leave/pager.html" %}
+{% endblock %}

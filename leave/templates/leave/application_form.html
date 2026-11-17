@@ -1,0 +1,36 @@
+{% extends "leave/base.html" %}
+{% block title %}Apply for leave{% endblock %}
+{% block content %}
+<div class="pagehead"><div><h1>Apply for leave</h1>
+  <p class="page-sub">{% if is_hr %}Applying on behalf of an employee.{% else %}New applications start as pending until your manager or HR decides.{% endif %}</p></div></div>
+
+<div class="layout-split wide-aside">
+  <form method="post" class="panel panel-body" id="leaveForm" data-basis="{{ day_basis }}" data-disable-submit>{% csrf_token %}
+    {% if form.non_field_errors %}<div class="notice notice-warning" role="alert"><i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i><div>{{ form.non_field_errors|join:" " }}</div></div>{% endif %}
+    {% if form.employee %}
+    <div class="field"><label class="form-label" for="{{ form.employee.id_for_label }}">Employee<span class="req" aria-hidden="true">*</span></label>{{ form.employee }}{{ form.employee.errors }}</div>
+    {% endif %}
+    <div class="field"><label class="form-label" for="{{ form.leave_type.id_for_label }}">Leave type<span class="req" aria-hidden="true">*</span></label>{{ form.leave_type }}{{ form.leave_type.errors }}</div>
+    <div class="date-pair field">
+      <div><label class="form-label" for="{{ form.start_date.id_for_label }}">First day<span class="req" aria-hidden="true">*</span></label>{{ form.start_date }}{{ form.start_date.errors }}</div>
+      <div><label class="form-label" for="{{ form.end_date.id_for_label }}">Last day<span class="req" aria-hidden="true">*</span></label>{{ form.end_date }}{{ form.end_date.errors }}</div>
+    </div>
+    <div id="estimate" class="estimate is-idle" aria-live="polite"><i class="bi bi-calendar-event" aria-hidden="true"></i><div><strong>Choose your dates</strong><span>Pick a leave type and dates to see how many days this will use.</span></div></div>
+    <div class="field"><label class="form-label" for="{{ form.reason.id_for_label }}">Reason</label>{{ form.reason }}{{ form.reason.errors }}</div>
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit"><i class="bi bi-send" aria-hidden="true"></i>Submit application</button>
+      <a class="btn btn-light" href="{% url 'leave:application_list' %}">Cancel</a>
+    </div>
+  </form>
+
+  <section class="panel" aria-labelledby="h-types">
+    <div class="panel-head"><h2 id="h-types">Leave types</h2></div>
+    <div class="table-card"><table class="data-table" style="min-width:0">
+      <thead><tr><th scope="col">Type</th><th scope="col" class="num">Days / year</th></tr></thead>
+      <tbody>{% for t in types %}<tr><td>{{ t }}{% if t.description %}<div class="text-muted small">{{ t.description }}</div>{% endif %}</td><td class="num">{{ t.days_allowed|default:"No limit" }}</td></tr>{% endfor %}</tbody>
+    </table></div>
+    <p class="panel-note">The system checks your balance, overlapping requests and gender-specific leave types when you submit.</p>
+  </section>
+</div>
+{% endblock %}
+{% block extra_js %}{% load static %}<script src="{% static 'leave/js/leave-form.js' %}" defer></script>{% endblock %}

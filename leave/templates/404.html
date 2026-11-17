@@ -1,0 +1,10 @@
+{% extends "leave/base.html" %}
+{% block title %}Page not found{% endblock %}
+{% block content %}
+<div class="error-page">
+  <span class="code"><i class="bi bi-compass" aria-hidden="true"></i></span>
+  <h1>We can&rsquo;t find that page</h1>
+  <p class="mt-2">The link may be out of date, or the item may have been removed.</p>
+  <a class="btn btn-primary" href="{% url 'leave:home' %}"><i class="bi bi-speedometer2" aria-hidden="true"></i>Back to dashboard</a>
+</div>
+{% endblock %}

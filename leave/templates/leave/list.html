@@ -1,0 +1,32 @@
+{% extends "leave/base.html" %}
+{% block title %}{{ cfg.title }}{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <div><h1>{{ cfg.title }}</h1></div>
+  {% if can_edit %}<div class="page-actions"><a class="btn btn-primary" href="{% url 'leave:'|add:key|add:'_add' %}"><i class="bi bi-plus-circle" aria-hidden="true"></i>Add {{ cfg.singular|lower }}</a></div>{% endif %}
+</div>
+<form class="filter-bar" method="get" role="search" aria-label="Search {{ cfg.title|lower }}">
+  <div class="grow"><label class="visually-hidden" for="f-q">Search</label><input id="f-q" class="form-control" type="search" name="q" value="{{ q }}" placeholder="Search {{ cfg.title|lower }}"></div>
+  <button class="btn btn-primary" type="submit"><i class="bi bi-search" aria-hidden="true"></i>Search</button>
+  {% if q %}<a class="clear" href="{% url 'leave:'|add:key|add:'_list' %}">Clear search</a>{% endif %}
+</form>
+<p class="results-line" aria-live="polite">{{ page.paginator.count }} {% if page.paginator.count == 1 %}record{% else %}records{% endif %}{% if q %} matching &ldquo;{{ q }}&rdquo;{% endif %}</p>
+<div class="table-card"><table class="data-table">
+  <thead><tr>{% for h in headers %}<th scope="col">{{ h }}</th>{% endfor %}{% if can_edit %}<th scope="col"><span class="visually-hidden">Actions</span></th>{% endif %}</tr></thead>
+  <tbody>
+  {% for obj, cells in rows %}
+  <tr>{% for c in cells %}<td{% if forloop.first %} class="id"{% endif %}>{{ c }}</td>{% endfor %}
+    {% if can_edit %}<td class="actions">
+      <a class="btn btn-sm btn-light" href="{% url 'leave:'|add:key|add:'_edit' obj.pk %}"><i class="bi bi-pencil-square" aria-hidden="true"></i>Edit<span class="visually-hidden"> {{ obj }}</span></a>
+      <a class="btn btn-sm btn-outline-danger" href="{% url 'leave:'|add:key|add:'_delete' obj.pk %}"><i class="bi bi-trash3" aria-hidden="true"></i>Delete<span class="visually-hidden"> {{ obj }}</span></a>
+    </td>{% endif %}
+  </tr>
+  {% empty %}
+  <tr><td colspan="{% if can_edit %}{{ headers|length|add:1 }}{% else %}{{ headers|length }}{% endif %}"><div class="empty"><i class="bi bi-folder2-open" aria-hidden="true"></i>
+    <strong>{% if q %}Nothing matches &ldquo;{{ q }}&rdquo;{% else %}No {{ cfg.title|lower }} yet{% endif %}</strong>
+    {% if can_edit and not q %}<div><a class="btn btn-primary" href="{% url 'leave:'|add:key|add:'_add' %}">Add {{ cfg.singular|lower }}</a></div>{% endif %}</div></td></tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% include "leave/pager.html" %}
+{% endblock %}

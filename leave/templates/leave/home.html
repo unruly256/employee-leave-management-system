@@ -1,0 +1,104 @@
+{% extends "leave/base.html" %}
+{% load leave_tags %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <div>
+    <h1>Welcome{% if employee %}, {{ employee.full_name|first_name }}{% else %}, {{ user.get_username }}{% endif %}</h1>
+    <p class="page-sub">{{ role }}{% if employee %}, {{ employee.department }} department{% endif %}</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn btn-primary" href="{% url 'leave:application_add' %}"><i class="bi bi-plus-circle" aria-hidden="true"></i>Apply for leave</a>
+  </div>
+</div>
+
+{% if not employee %}
+<div class="notice notice-info"><i class="bi bi-info-circle-fill" aria-hidden="true"></i>
+  <div>This login is not linked to an employee profile, so there is no personal leave balance to show.
+  {% if stats %}You can still apply on behalf of an employee, or link this account to a profile under HR setup &rarr; Employees.{% else %}Ask HR to link your account.{% endif %}</div>
+</div>
+{% endif %}
+
+{% if stats %}
+<div class="stats">
+  <a class="stat" href="{% url 'leave:employee_list' %}"><span class="stat-icon"><i class="bi bi-person-vcard" aria-hidden="true"></i></span><span><b>{{ stats.employees }}</b>Employees</span></a>
+  <a class="stat" href="{% url 'leave:department_list' %}"><span class="stat-icon"><i class="bi bi-building" aria-hidden="true"></i></span><span><b>{{ stats.departments }}</b>Departments</span></a>
+  <a class="stat is-pending" href="{% url 'leave:application_list' %}?status=Pending"><span class="stat-icon"><i class="bi bi-hourglass-split" aria-hidden="true"></i></span><span><b>{{ stats.pending }}</b>Pending applications</span></a>
+  <a class="stat" href="{% url 'leave:application_list' %}?status=Approved"><span class="stat-icon"><i class="bi bi-check-circle" aria-hidden="true"></i></span><span><b>{{ stats.approved }}</b>Approved applications</span></a>
+</div>
+{% endif %}
+
+<div class="layout-split">
+  <div class="stack">
+    {% if to_approve %}
+    <section class="panel attention" aria-labelledby="h-approve">
+      <div class="panel-head"><h2 id="h-approve">Waiting for your decision<span class="count">{{ to_approve|length }}</span></h2></div>
+      <div class="table-card"><table class="data-table">
+        <thead><tr><th scope="col">Employee</th><th scope="col">Type</th><th scope="col">Dates</th><th scope="col" class="num">Days</th><th scope="col"><span class="visually-hidden">Action</span></th></tr></thead>
+        <tbody>
+        {% for a in to_approve %}
+        <tr><td><span class="who">{{ a.employee }}<small>{{ a.employee.department }}</small></span></td>
+            <td>{{ a.leave_type }}</td>
+            <td class="nowrap">{% date_range a.start_date a.end_date %}</td>
+            <td class="num">{{ a.days }}</td>
+            <td class="actions"><a class="btn btn-sm btn-primary" href="{% url 'leave:application_process' a.pk %}"><i class="bi bi-eye" aria-hidden="true"></i>Review<span class="visually-hidden"> application {{ a.pk }}</span></a></td></tr>
+        {% endfor %}
+        </tbody>
+      </table></div>
+    </section>
+    {% endif %}
+
+    {% if balances %}
+    <section class="panel" aria-labelledby="h-balance">
+      <div class="panel-head"><h2 id="h-balance">My leave balance for {{ year }}</h2></div>
+      {% for b in balances %}
+      <div class="balance-row">
+        <span class="name">{{ b.type }}</span>
+        <span class="left">{% if b.left is None %}<b>{{ b.used }}</b> day{{ b.used|pluralize }} taken{% else %}<b>{{ b.left }}</b> of {{ b.type.days_allowed }} left{% endif %}</span>
+        {% if b.left is not None %}<div class="meter {{ b.level }}" role="progressbar" aria-label="{{ b.type }} leave used" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ b.pct }}"><span style="width:{{ b.pct }}%"></span></div>
+        <span class="meta">{{ b.used }} day{{ b.used|pluralize }} used or booked{% if b.left == 0 %} &middot; no days remaining{% endif %}</span>
+        {% else %}<span class="meta">No yearly limit</span>{% endif %}
+      </div>
+      {% endfor %}
+      <p class="panel-note">Days are counted Monday to Friday, excluding public holidays. Pending requests count towards your balance.</p>
+    </section>
+    {% endif %}
+
+    {% if recent %}
+    <section class="panel" aria-labelledby="h-recent">
+      <div class="panel-head"><h2 id="h-recent">My recent applications</h2><a href="{% url 'leave:application_list' %}">View all</a></div>
+      <div class="table-card"><table class="data-table">
+        <thead><tr><th scope="col">App</th><th scope="col">Type</th><th scope="col">Dates</th><th scope="col" class="num">Days</th><th scope="col">Status</th></tr></thead>
+        <tbody>
+        {% for a in recent %}
+        <tr><td class="id">#{{ a.pk }}</td><td>{{ a.leave_type }}</td><td class="nowrap">{% date_range a.start_date a.end_date %}</td>
+            <td class="num">{{ a.days }}</td><td>{% status_badge a.status %}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table></div>
+    </section>
+    {% endif %}
+  </div>
+
+  <aside class="stack" aria-label="Who is away">
+    <section class="panel" aria-labelledby="h-today">
+      <div class="panel-head"><h2 id="h-today">On leave today</h2></div>
+      {% if on_leave_today %}
+      <ul class="side-list">{% for a in on_leave_today %}
+        <li><span class="avatar" style="background:var(--brand-50);color:var(--brand)" aria-hidden="true">{{ a.employee.full_name|initials }}</span>
+            <span class="what">{{ a.employee }}<small>{{ a.leave_type }} &middot; back after {{ a.end_date|date:"j M" }}</small></span></li>
+      {% endfor %}</ul>
+      {% else %}<p class="side-empty">Nobody is away today.</p>{% endif %}
+    </section>
+    <section class="panel" aria-labelledby="h-upcoming">
+      <div class="panel-head"><h2 id="h-upcoming">Coming up in the next 30 days</h2></div>
+      {% if upcoming %}
+      <ul class="side-list">{% for a in upcoming %}
+        <li><span class="datechip" aria-hidden="true"><b>{{ a.start_date|date:"j" }}</b><span>{{ a.start_date|date:"M" }}</span></span>
+            <span class="what">{{ a.employee }}<small>{{ a.leave_type }} &middot; {% date_range a.start_date a.end_date %} &middot; {{ a.days }} day{{ a.days|pluralize }}</small></span></li>
+      {% endfor %}</ul>
+      {% else %}<p class="side-empty">No approved leave starts in the next 30 days.</p>{% endif %}
+    </section>
+  </aside>
+</div>
+{% endblock %}

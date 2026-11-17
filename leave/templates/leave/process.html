@@ -1,0 +1,55 @@
+{% extends "leave/base.html" %}
+{% load leave_tags %}
+{% block title %}Review application #{{ app.pk }}{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <div><h1>Review application #{{ app.pk }}</h1><p class="page-sub">Submitted {{ app.applied_on|date:"j M Y" }} by {{ app.employee }}</p></div>
+  <div class="page-actions">{% status_badge app.status %}</div>
+</div>
+
+<div class="layout-split">
+  <div class="stack">
+    <section class="panel" aria-labelledby="h-req">
+      <div class="panel-head"><h2 id="h-req">Request</h2></div>
+      <div class="panel-body"><dl class="kv">
+        <dt>Employee</dt><dd>{{ app.employee }} <span class="text-muted">&middot; {{ app.employee.department }}</span></dd>
+        <dt>Leave type</dt><dd>{{ app.leave_type }}</dd>
+        <dt>Dates</dt><dd>{{ app.start_date|date:"D j M Y" }} to {{ app.end_date|date:"D j M Y" }}</dd>
+        <dt>Length</dt><dd><strong>{{ app.days }} working day{{ app.days|pluralize }}</strong></dd>
+        <dt>Reason</dt><dd>{{ app.reason|default:"No reason given" }}</dd>
+        <dt>Balance</dt><dd>{% if left is None %}No yearly limit for {{ app.leave_type }} leave{% else %}{{ left }} day{{ left|pluralize }} left of {{ app.leave_type.days_allowed }} in {{ app.start_date.year }}, including this request{% endif %}</dd>
+      </dl></div>
+    </section>
+    {% if warning or clashes %}
+    <section class="panel" aria-labelledby="h-team">
+      <div class="panel-head"><h2 id="h-team">Team cover</h2></div>
+      <div class="panel-body">
+        {% if warning %}<div class="notice notice-warning" role="alert"><i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i><div>{{ warning }}</div></div>{% endif %}
+        {% if clashes %}<p class="mb-2">Already away in the same team during these dates:</p>
+        <ul class="mb-0">{% for c in clashes %}<li>{{ c.employee }} &ndash; {{ c.leave_type }}, {% date_range c.start_date c.end_date %}</li>{% endfor %}</ul>{% endif %}
+      </div>
+    </section>
+    {% endif %}
+  </div>
+
+  <form method="post" class="panel panel-body" data-disable-submit data-confirm="This saves your decision, updates the application status and adds an entry to the leave records." data-confirm-title="Save this decision?" data-confirm-label="Save decision" data-confirm-variant="primary">{% csrf_token %}
+    {% if form.non_field_errors %}<div class="notice notice-warning" role="alert"><i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i><div>{{ form.non_field_errors|join:" " }}</div></div>{% endif %}
+    <fieldset class="field">
+      <legend class="form-label">Decision</legend>
+      <div class="choice-grid">
+        {% for radio in form.decision %}
+        <label class="choice choice-{% if radio.data.value == 'Approved' %}approve{% else %}reject{% endif %}" for="{{ radio.id_for_label }}">{{ radio.tag }}
+          <span class="choice-body"><i class="bi {% if radio.data.value == 'Approved' %}bi-check-circle-fill{% else %}bi-x-circle-fill{% endif %}" aria-hidden="true"></i><span>{{ radio.choice_label }}<small>{% if radio.data.value == 'Approved' %}Leave goes ahead{% else %}Employee is told no{% endif %}</small></span></span>
+        </label>
+        {% endfor %}
+      </div>
+      {{ form.decision.errors }}
+    </fieldset>
+    <div class="field"><label class="form-label" for="{{ form.comments.id_for_label }}">Comment</label>{{ form.comments }}{{ form.comments.errors }}</div>
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit"><i class="bi bi-check2-circle" aria-hidden="true"></i>Save decision</button>
+      <a class="btn btn-light" href="{% url 'leave:application_list' %}">Back</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

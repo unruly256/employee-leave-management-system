@@ -1,0 +1,10 @@
+{% extends "leave/base.html" %}
+{% block title %}Access denied{% endblock %}
+{% block content %}
+<div class="error-page">
+  <span class="code"><i class="bi bi-lock" aria-hidden="true"></i></span>
+  <h1>You don&rsquo;t have access to this page</h1>
+  <p class="mt-2">Your role doesn&rsquo;t include this action. If you think it should, ask HR.</p>
+  <a class="btn btn-primary" href="{% url 'leave:home' %}"><i class="bi bi-speedometer2" aria-hidden="true"></i>Back to dashboard</a>
+</div>
+{% endblock %}

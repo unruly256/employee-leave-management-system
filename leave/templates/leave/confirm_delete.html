@@ -1,0 +1,12 @@
+{% extends "leave/base.html" %}
+{% block title %}Delete {{ obj }}{% endblock %}
+{% block content %}
+<section class="panel panel-body delete-card">
+  <h1><i class="bi bi-trash3 me-2" aria-hidden="true"></i>Delete &ldquo;{{ obj }}&rdquo;?</h1>
+  <p class="text-muted mt-2">This cannot be undone. If other records still depend on it, the system will keep it and tell you why.</p>
+  <form method="post" class="form-actions" data-confirm="Permanently delete &ldquo;{{ obj }}&rdquo;?" data-confirm-title="Delete permanently?" data-confirm-label="Delete" data-disable-submit>{% csrf_token %}
+    <button class="btn btn-danger" type="submit"><i class="bi bi-trash3" aria-hidden="true"></i>Delete permanently</button>
+    <a class="btn btn-light" href="{% url back %}">Keep it</a>
+  </form>
+</section>
+{% endblock %}

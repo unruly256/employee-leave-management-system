@@ -1,0 +1,18 @@
+{% extends "leave/base.html" %}
+{% load leave_tags %}
+{% block title %}Sign in{% endblock %}
+{% block content %}
+<div class="auth-wrap">
+  <form method="post" class="panel auth-card" data-disable-submit>{% csrf_token %}
+    <span class="brand-mark" aria-hidden="true"><i class="bi bi-calendar2-check"></i></span>
+    <h1>Sign in</h1>
+    <p class="lead">Apply for leave, approve requests and track balances.</p>
+    {% if form.errors %}<div class="notice notice-warning" role="alert"><i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i><div>{% if form.non_field_errors %}{{ form.non_field_errors|join:" " }}{% else %}Enter your username and password.{% endif %}</div></div>{% endif %}
+    <div class="field"><label class="form-label" for="{{ form.username.id_for_label }}">Username</label>{{ form.username|add_class:"form-control" }}</div>
+    <div class="field"><label class="form-label" for="{{ form.password.id_for_label }}">Password</label>{{ form.password|add_class:"form-control" }}</div>
+    <input type="hidden" name="next" value="{{ next }}">
+    <button class="btn btn-primary" type="submit"><i class="bi bi-box-arrow-in-right" aria-hidden="true"></i>Sign in</button>
+    <p class="auth-help">Can&rsquo;t sign in? Ask HR to check your account.</p>
+  </form>
+</div>
+{% endblock %}

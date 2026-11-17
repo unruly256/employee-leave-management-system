@@ -1,0 +1,10 @@
+{% load leave_tags %}{% if page.paginator.num_pages > 1 %}
+<nav class="pager-bar" aria-label="Pagination">
+  <span>Showing {{ page.start_index }}&ndash;{{ page.end_index }} of {{ page.paginator.count }}</span>
+  <span class="d-flex align-items-center gap-2">
+    {% if page.has_previous %}<a class="btn btn-sm btn-light" href="{% page_url page.previous_page_number %}" rel="prev"><i class="bi bi-chevron-left" aria-hidden="true"></i>Previous</a>{% endif %}
+    <span>Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+    {% if page.has_next %}<a class="btn btn-sm btn-light" href="{% page_url page.next_page_number %}" rel="next">Next<i class="bi bi-chevron-right" aria-hidden="true"></i></a>{% endif %}
+  </span>
+</nav>
+{% endif %}
