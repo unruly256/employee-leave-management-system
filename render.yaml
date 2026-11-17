@@ -1,0 +1,28 @@
+databases:
+  - name: anoor-leave-db
+    databaseName: anoor_leave
+    user: anoor_leave
+    plan: free
+
+services:
+  - type: web
+    name: anoor-leave-management
+    runtime: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput"
+    startCommand: "python manage.py migrate && python manage.py prepare_demo && gunicorn general_settings.wsgi:application --bind 0.0.0.0:$PORT"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: anoor-leave-db
+          property: connectionString
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "0"
+      - key: DJANGO_ALLOWED_HOSTS
+        value: ".onrender.com"
+      - key: DJANGO_HTTPS
+        value: "1"
+      - key: DEMO_ADMIN_PASSWORD
+        sync: false

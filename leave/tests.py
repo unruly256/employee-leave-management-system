@@ -158,8 +158,8 @@ class PolishTests(TestCase):
         names = {t.name for t in r.context["form"].fields["leave_type"].queryset}
         self.assertIn("Maternity", names)
         self.assertNotIn("Paternity", names)
-        self.assertContains(r, 'id="leave-holidays"')
-        self.assertContains(r, 'id="leave-types"')
+        self.assertContains(r, 'id="leaveForm"')
+        self.assertContains(r, 'id="estimate"')
 
     def test_holiday_list_matches_server_rules(self):
         days = holidays_for_years([2027])
